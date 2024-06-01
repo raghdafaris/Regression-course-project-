@@ -1,0 +1,82 @@
+---
+title: "DS Regression Project"
+author: "Raghda"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+## Let's load the data and plot the relationship between all variables. 
+```{r, echo=FALSE, warning=FALSE,message=FALSE}
+#load the datat 
+library(datasets)
+library(GGally)
+library(ggplot2)
+data(mtcars)
+
+# Convert 'am' to a factor with labels 'Automatic' and 'Manual'
+mtcars$transmission <- factor(mtcars$am, levels = c(0, 1), labels = c("Automatic", "Manual"))
+
+## Exploratory data analyses Plots 
+ggpairs(mtcars, title = "Pairwise Plot")
+
+```
+
+This plot shows a summery of the relationship between all the data
+
+## Q1-Is an automatic or manual transmission better for MPG?
+Our first model is a simple linear regression of MPG on transmission type.his model indicates a significant difference in MPG between transmission types.
+
+```{r }
+# Fit the linear model
+model1 <- lm(mpg ~ transmission, data = mtcars)
+summary(model1)
+head(coef(summary(model1)))
+
+```
+
+## Interpretation
+On average, manual transmission cars have about 7.245 more miles per gallon than automatic transmission car.The Pvalue for transmissionManual is very low (< 0.001), indicating that this difference is statistically significant.
+R-squared: The model explains about 35.98% of the variance in MPG.So the manual transmissions are better for MPG, and it quantifies the difference as approximately 7.245 MPG higher for manual transmissions.
+
+## Q2-Quantify the MPG difference between automatic and manual transmissions
+Using multiple Models We expand the models to control for all other variables to understand their effect on mgp.
+
+```{r }
+# mpg with all variables 
+model2<- lm(data = mtcars, mpg~.)
+summary(model2)
+#Quantifying the MPG Difference
+head(coef(summary(model2)))
+
+```
+
+If a p-value is less than  0.05 we can conclude that the corresponding predictor is statistically significant.Larger coefficients suggest stronger associations between predictors and the response variable.Smaller standard errors indicate more precise estimates.
+
+## Choosing the best fit
+Best selects the best subset of predictors based on the Akaike Information Criterion (AIC), adding or removing predictors one at a time.
+Best = step(model2, direction = "both")
+```{r, include=FALSE}
+Best = step(model2, direction = "both")
+```
+
+## Interpretation
+The stepwise regression procedure selected a final model with three predictors: wt, qsec, and am. This model has the lowest AIC value (61.31) among all the models considered, indicating that it provides the best balance of goodness of fit and model complexity according to the AIC criterion.
+
+## Ploting the Residual 
+```{r }
+#Residual Plots and Diagnostics
+par(mfrow=c(2,2))
+plot(model2)
+```
+
+The histogram for the mpg data was also plotted and it had a normal distribution. 
+
+```{r ,echo=FALSE}
+# mpg data have a normal distribution 
+ggplot(data = mtcars, aes(x =  mpg)) + 
+    geom_histogram() 
+```
+
+## Conclution
+Both models provide insights into the relationship between predictors and the response variable. Model selection depends on the research question, the desired level of complexity, and the importance of interpretability. In this case, while Model 2 explains more variance, Model 1 may be preferred if the focus is solely on the relationship between transmission type and MPG.
